@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Music, PauseCircle, PlayCircle } from 'lucide-react';
 import config from '@/config/config';
 import BottomBar from '@/components/BottomBar';
+import AnimatedBackground from '@/components/AnimatedBackground';
 
 const Layout = ({ children }) => {
   const [isPlaying, setIsPlaying] = useState(false);
@@ -156,6 +157,8 @@ const Layout = ({ children }) => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Animated Background */}
+        <AnimatedBackground />
         {/* Music Control Button with Status Indicator */}
         <motion.button
           initial={{ scale: 0 }}

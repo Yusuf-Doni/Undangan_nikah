@@ -21,13 +21,13 @@ const config = {
     // How to get: open Google Maps → select location → Share → Embed → copy link
     maps_embed:
     // <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d248.3347534067513!2d111.58466243323213!3d-7.153192510336271!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sid!4v1760877883922!5m2!1sen!2sid" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      "https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d248.3347534067513!2d111.58466243323213!3d-7.153192510336271!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2sid!4v1760877883922!5m2!1sen!2sid",
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3958.763374371285!2d111.5845188!3d-7.1533349!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7765002b6caeef%3A0x9ba00f0930ac3d38!2sMillie%20Laundry!5e0!3m2!1sid!2sid!4v1760898770177!5m2!1sid!2sid",
     // Event time (free format, example: "10:00 - 12:00 WIB")
     time: "10:00 - 13:00 WIB",
     // Venue/building name
-    location: "Grand Ballroom, Hotel Majesty",
+    location: "Millie Laundry",
     // Full address of the wedding venue
-    address: "Jl. Jend. Sudirman No.1, Jakarta",
+    address: "RHWM+MQ3, Balun Sawahan Lorong 5, Bulansawahan, Balun, Kec. Cepu, Kabupaten Blora, Jawa Tengah 58311",
     // Image that appears when link is shared on social media
     ogImage: "/images/og-image.jpg",
     // Icon that appears in browser tab
@@ -44,9 +44,9 @@ const config = {
         // End time (format: HH:MM)
         endTime: "11:00",
         // Event venue
-        location: "Grand Ballroom, Hotel Majesty",
+        location: "Millie Laundry",
         // Full address
-        address: "Jl. Jend. Sudirman No.1, Jakarta",
+        address: "RHWM+MQ3, Balun Sawahan Lorong 5, Bulansawahan, Balun, Kec. Cepu, Kabupaten Blora, Jawa Tengah 58311",
       },
       {
         // Second event name
@@ -54,7 +54,7 @@ const config = {
         date: "2025-12-14",
         startTime: "12:00",
         endTime: "13:00",
-        location: "Grand Ballroom, Hotel Majesty",
+        location: "Millie Laundry",
         address: "Jl. Jend. Sudirman No.1, Jakarta",
       }
       // You can add more agenda items with the same format

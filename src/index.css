@@ -72,3 +72,170 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom gradient utilities for animated background */
+@layer utilities {
+  .bg-gradient-radial {
+    background: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+}
+
+/* Smooth floating animations */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-5px);
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px);
+  }
+}
+
+@keyframes gentle-pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes soft-glow {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(1.1);
+  }
+}
+
+/* Apply animations to background elements */
+.animate-float {
+  animation: float 20s ease-in-out infinite;
+}
+
+.animate-gentle-pulse {
+  animation: gentle-pulse 8s ease-in-out infinite;
+}
+
+.animate-soft-glow {
+  animation: soft-glow 12s ease-in-out infinite;
+}
+
+/* Butterfly wing flapping animation */
+@keyframes butterfly-flap {
+  0%, 100% {
+    transform: scaleY(1) rotate(0deg);
+  }
+  25% {
+    transform: scaleY(0.7) rotate(2deg);
+  }
+  50% {
+    transform: scaleY(0.8) rotate(0deg);
+  }
+  75% {
+    transform: scaleY(0.6) rotate(-2deg);
+  }
+}
+
+@keyframes butterfly-float {
+  0%, 100% {
+    transform: translateY(0px) translateX(0px) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) translateX(8px) rotate(3deg);
+  }
+  50% {
+    transform: translateY(-8px) translateX(-5px) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-20px) translateX(3px) rotate(-2deg);
+  }
+}
+
+.animate-butterfly-flap {
+  animation: butterfly-flap 0.4s ease-in-out infinite;
+}
+
+.animate-butterfly-float {
+  animation: butterfly-float 6s ease-in-out infinite;
+}
+
+/* Performance optimizations for many butterflies */
+.butterfly-container {
+  will-change: transform;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.butterfly-svg {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Flower animations */
+@keyframes flower-bloom {
+  0% {
+    opacity: 0;
+    transform: scale(0) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1) rotate(5deg);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes flower-sway {
+  0%, 100% {
+    transform: rotate(0deg) translateY(0px);
+  }
+  25% {
+    transform: rotate(2deg) translateY(-5px);
+  }
+  50% {
+    transform: rotate(0deg) translateY(-10px);
+  }
+  75% {
+    transform: rotate(-2deg) translateY(-5px);
+  }
+}
+
+@keyframes flower-petal-fall {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) rotate(0deg);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateY(0px) rotate(180deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(20px) rotate(360deg);
+  }
+}
+
+.animate-flower-bloom {
+  animation: flower-bloom 6s ease-in-out infinite;
+}
+
+.animate-flower-sway {
+  animation: flower-sway 8s ease-in-out infinite;
+}
+
+.animate-petal-fall {
+  animation: flower-petal-fall 4s ease-in-out infinite;
+}
