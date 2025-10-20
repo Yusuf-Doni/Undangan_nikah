@@ -8,7 +8,7 @@ import {
     Building2,
 } from 'lucide-react'
 import { useState, useEffect } from 'react';
-
+import Flower from '@/components/Flower'
 export default function Gifts() {
     const [copiedAccount, setCopiedAccount] = useState(null);
     const [hasAnimated, setHasAnimated] = useState(false);
@@ -26,6 +26,12 @@ export default function Gifts() {
     
     return (<>
         <section id="gifts" className="min-h-screen relative overflow-hidden">
+            {/* Soft gradient and blobs to enrich background */}
+            <div className="absolute inset-0 -z-10">
+                <div className="absolute inset-0 bg-gradient-to-b from-rose-50/80 via-pink-50/40 to-rose-100/80" />
+                <div className="absolute top-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-rose-200/25 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute bottom-0 left-0 w-72 h-72 md:w-96 md:h-96 bg-pink-200/25 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+            </div>
             <div className="container mx-auto px-4 py-20 relative z-10">
                 {/* Section Header */}
                 <motion.div

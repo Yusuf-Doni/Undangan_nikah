@@ -196,7 +196,7 @@ export default function Hero() {
                                     className="space-y-2"
                                 >
                                     <p className="text-gray-500 font-serif italic text-sm">
-                                        Kepada Yth.
+                                        Yth.
                                     </p>
                                     <p className="text-gray-600 font-medium text-sm">
                                         Bapak/Ibu/Saudara/i

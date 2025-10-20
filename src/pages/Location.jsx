@@ -31,9 +31,9 @@ export default function Location() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
                         viewport={{ once: true }}
-                        className="text-4xl md:text-5xl font-serif text-gray-800"
+                        className="text-3xl md:text-4xl font-serif text-gray-800"
                     >
-                        Lokasi
+                        Rumah Pengantin Wanita
                     </motion.h2>
 
                     {/* Decorative Divider */}

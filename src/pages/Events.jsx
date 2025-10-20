@@ -57,9 +57,9 @@ export default function Events() {
                             transition={{ delay: 0.4 }}
                             className="text-gray-500 max-w-md mx-auto"
                         >
-                            Kami Mengundang Anda untuk Merayakan Hari Istimewa Sebagai Awal Perjalanan Cinta Kami
+                            Hari Istimewa sebagai Awal Perjalanan Cinta Kami
                         </motion.p>
-
+                        {/* Kami Mengundang Anda untuk Merayakan  */}
                         {/* Decorative Line */}
                         <motion.div
                             initial={{ scale: 0 }}
