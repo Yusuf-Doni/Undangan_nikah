@@ -67,7 +67,7 @@ const AnimatedBackground = () => {
   }));
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
       {/* Gradient overlay for subtle depth */}
       <div className="absolute inset-0 bg-gradient-to-br from-rose-50/30 via-pink-50/20 to-rose-100/30" />
       
