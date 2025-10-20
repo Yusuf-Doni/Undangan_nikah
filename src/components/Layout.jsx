@@ -150,13 +150,20 @@ const Layout = ({ children }) => {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+    <div className="relative min-h-screen w-full bg-gradient-to-b from-rose-50 via-pink-50 to-rose-100 flex items-center justify-center">
       <motion.div
-        className="mx-auto w-full max-w-[430px] min-h-screen bg-white relative overflow-hidden border border-gray-200 shadow-lg"
+        className="mx-auto w-full max-w-[430px] min-h-screen bg-white relative overflow-hidden border border-rose-100 shadow-lg"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
+        {/* Decorative soft blobs behind content */}
+        <div className="absolute inset-0 -z-10">
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-rose-200/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-96 md:h-96 bg-pink-200/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+        </div>
+        {/* Global soft gradient inside the app container */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-rose-50/60 via-pink-50/30 to-rose-100/60" />
         {/* Animated Background */}
         <AnimatedBackground />
         {/* Music Control Button with Status Indicator */}
@@ -178,7 +185,7 @@ const Layout = ({ children }) => {
           )}
         </motion.button>
 
-        <main className="relative h-full w-full pb-[100px]">
+        <main className="relative z-20 h-full w-full pb-[100px]">
           {children}
         </main>
         <BottomBar />

@@ -12,13 +12,35 @@ import {
     CheckCircle,
     XCircle,
     HelpCircle,
+    Download,
 } from 'lucide-react'
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatEventDate } from '@/lib/formatEventDate';
+import * as XLSX from 'xlsx';
+
+// Local storage utility functions
+const saveWishesToLocalStorage = (wishes) => {
+    try {
+        localStorage.setItem('wedding_wishes', JSON.stringify(wishes));
+    } catch (error) {
+        console.error('Error saving wishes to localStorage:', error);
+    }
+};
+
+const loadWishesFromLocalStorage = () => {
+    try {
+        const savedWishes = localStorage.getItem('wedding_wishes');
+        return savedWishes ? JSON.parse(savedWishes) : [];
+    } catch (error) {
+        console.error('Error loading wishes from localStorage:', error);
+        return [];
+    }
+};
 
 export default function Wishes() {
     const [showConfetti, setShowConfetti] = useState(false);
     const [newWish, setNewWish] = useState('');
+    const [guestName, setGuestName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attendance, setAttendance] = useState('');
     const [isOpen, setIsOpen] = useState(false);
@@ -28,49 +50,52 @@ export default function Wishes() {
         { value: 'NOT_ATTENDING', label: 'Tidak, saya tidak bisa hadir' },
         { value: 'MAYBE', label: 'Mungkin, saya akan konfirmasi nanti' }
     ];
-    // Example wishes - replace with your actual data
-    const [wishes, setWishes] = useState([
-        {
-            id: 1,
-            name: "John Doe",
-            message: "Wishing you both a lifetime of love, laughter, and happiness! 🎉",
-            timestamp: "2024-12-24T23:20:00Z",
-            attending: "attending"
-        },
-        {
-            id: 2,
-            name: "Natalie",
-            message: "Wishing you both a lifetime of love, laughter, and happiness! 🎉",
-            timestamp: "2024-12-24T23:20:00Z",
-            attending: "attending"
-        },
-        {
-            id: 3,
-            name: "Abdur Rofi",
-            message: "Congratulations on your special day! May Allah bless your union! 🤲",
-            timestamp: "2024-12-25T23:08:09Z",
-            attending: "maybe"
+    // Load wishes from localStorage or use default examples
+    const [wishes, setWishes] = useState([]);
+
+    // Load wishes from localStorage on component mount
+    useEffect(() => {
+        const savedWishes = loadWishesFromLocalStorage();
+        
+        // Filter out dummy data (John Doe, Natalie, Abdur Rofi)
+        const filteredWishes = savedWishes.filter(wish => 
+            !['John Doe', 'Natalie', 'Abdur Rofi'].includes(wish.name)
+        );
+        
+        // If we filtered out dummy data, save the cleaned version
+        if (filteredWishes.length !== savedWishes.length) {
+            saveWishesToLocalStorage(filteredWishes);
         }
-    ]);
+        
+        setWishes(filteredWishes);
+    }, []);
 
     const handleSubmitWish = async (e) => {
         e.preventDefault();
-        if (!newWish.trim()) return;
+        if (!newWish.trim() || !guestName.trim()) return;
 
         setIsSubmitting(true);
         // Simulating API call
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         const newWishObj = {
-            id: wishes.length + 1,
-            name: "Guest", // Replace with actual user name
-            message: newWish,
-            attend: "attending",
+            id: Date.now(), // Use timestamp for unique ID
+            name: guestName.trim(),
+            message: newWish.trim(),
+            attending: attendance || "attending",
             timestamp: new Date().toISOString()
         };
 
-        setWishes(prev => [newWishObj, ...prev]);
+        const updatedWishes = [newWishObj, ...wishes];
+        setWishes(updatedWishes);
+        
+        // Save to localStorage
+        saveWishesToLocalStorage(updatedWishes);
+        
+        // Reset form
         setNewWish('');
+        setGuestName('');
+        setAttendance('');
         setIsSubmitting(false);
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3000);
@@ -87,9 +112,225 @@ export default function Wishes() {
                 return null;
         }
     };
+
+    const clearAllWishes = () => {
+        if (confirm('Apakah Anda yakin ingin menghapus semua ucapan?')) {
+            localStorage.removeItem('wedding_wishes');
+            setWishes([]);
+        }
+    };
+
+    const clearDummyData = () => {
+        const savedWishes = loadWishesFromLocalStorage();
+        const filteredWishes = savedWishes.filter(wish => 
+            !['John Doe', 'Natalie', 'Abdur Rofi'].includes(wish.name)
+        );
+        
+        if (filteredWishes.length !== savedWishes.length) {
+            saveWishesToLocalStorage(filteredWishes);
+            setWishes(filteredWishes);
+            alert('Data dummy telah dihapus!');
+        } else {
+            alert('Tidak ada data dummy yang ditemukan.');
+        }
+    };
+
+    const exportToExcel = () => {
+        if (wishes.length === 0) {
+            alert('Tidak ada data untuk diekspor');
+            return;
+        }
+
+        // Prepare data for Excel
+        const excelData = wishes.map(wish => ({
+            'No': wishes.indexOf(wish) + 1,
+            'Nama': wish.name,
+            'Pesan': wish.message,
+            'Kehadiran': wish.attending === 'attending' ? 'Hadir' : 
+                        wish.attending === 'not-attending' ? 'Tidak Hadir' : 'Mungkin',
+            'Tanggal': formatEventDate(wish.timestamp)
+        }));
+
+        // Create workbook and worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(excelData);
+
+        // Set column widths
+        ws['!cols'] = [
+            { wch: 5 },   // No
+            { wch: 20 },  // Nama
+            { wch: 50 },  // Pesan
+            { wch: 15 },  // Kehadiran
+            { wch: 20 }   // Tanggal
+        ];
+
+        // Add worksheet to workbook
+        XLSX.utils.book_append_sheet(wb, ws, 'Data Ucapan');
+
+        // Generate filename with current date
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `Data_Ucapan_${currentDate}.xlsx`;
+
+        // Save file
+        XLSX.writeFile(wb, filename);
+    };
     return (<>
         <section id="wishes" className="min-h-screen relative overflow-hidden">
+            {/* Gradient background and decorative blobs */}
+            <div className="absolute inset-0 -z-10">
+                <div className="absolute inset-0 bg-gradient-to-b from-rose-50/80 via-pink-50/40 to-rose-100/80" />
+                <div className="absolute top-0 right-0 w-72 h-72 md:w-[26rem] md:h-[26rem] bg-rose-200/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                <div className="absolute bottom-0 left-0 w-72 h-72 md:w-[26rem] md:h-[26rem] bg-pink-200/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+            </div>
             {showConfetti && <Confetti recycle={false} numberOfPieces={200} />}
+            
+            {/* Background Butterflies */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+                {/* Butterfly 1 */}
+                <motion.div
+                    className="absolute top-20 left-10 w-8 h-8"
+                    animate={{
+                        y: [0, -20, 0],
+                        x: [0, 10, 0],
+                        rotate: [0, 5, -5, 0]
+                    }}
+                    transition={{
+                        duration: 4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
+                >
+                    <div className="relative w-full h-full">
+                        {/* Left wing */}
+                        <div className="absolute -left-2 -top-2 w-3 h-3 bg-gradient-to-br from-pink-300 to-rose-400 rounded-full transform rotate-45"></div>
+                        <div className="absolute -left-1 -top-1 w-2 h-2 bg-gradient-to-br from-pink-200 to-rose-300 rounded-full transform rotate-45"></div>
+                        
+                        {/* Right wing */}
+                        <div className="absolute -right-2 -top-2 w-3 h-3 bg-gradient-to-br from-pink-300 to-rose-400 rounded-full transform -rotate-45"></div>
+                        <div className="absolute -right-1 -top-1 w-2 h-2 bg-gradient-to-br from-pink-200 to-rose-300 rounded-full transform -rotate-45"></div>
+                        
+                        {/* Body */}
+                        <div className="absolute left-1/2 top-1/2 w-1 h-3 bg-gradient-to-b from-amber-600 to-amber-800 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                        
+                        {/* Antennae */}
+                        <div className="absolute left-1/2 top-0 w-0.5 h-1 bg-amber-800 rounded-full transform -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-amber-800 rounded-full transform -translate-x-1/2"></div>
+                    </div>
+                </motion.div>
+
+                {/* Butterfly 2 */}
+                <motion.div
+                    className="absolute top-40 right-16 w-6 h-6"
+                    animate={{
+                        y: [0, -15, 0],
+                        x: [0, -8, 0],
+                        rotate: [0, -3, 3, 0]
+                    }}
+                    transition={{
+                        duration: 3.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 1
+                    }}
+                >
+                    <div className="relative w-full h-full">
+                        {/* Left wing */}
+                        <div className="absolute -left-1.5 -top-1.5 w-2.5 h-2.5 bg-gradient-to-br from-purple-300 to-pink-400 rounded-full transform rotate-45"></div>
+                        <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-gradient-to-br from-purple-200 to-pink-300 rounded-full transform rotate-45"></div>
+                        
+                        {/* Right wing */}
+                        <div className="absolute -right-1.5 -top-1.5 w-2.5 h-2.5 bg-gradient-to-br from-purple-300 to-pink-400 rounded-full transform -rotate-45"></div>
+                        <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-gradient-to-br from-purple-200 to-pink-300 rounded-full transform -rotate-45"></div>
+                        
+                        {/* Body */}
+                        <div className="absolute left-1/2 top-1/2 w-0.5 h-2 bg-gradient-to-b from-slate-600 to-slate-800 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                        
+                        {/* Antennae */}
+                        <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-slate-800 rounded-full transform -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-slate-800 rounded-full transform -translate-x-1/2"></div>
+                    </div>
+                </motion.div>
+
+                {/* Butterfly 3 */}
+                <motion.div
+                    className="absolute bottom-32 left-20 w-7 h-7"
+                    animate={{
+                        y: [0, -25, 0],
+                        x: [0, 15, 0],
+                        rotate: [0, 8, -8, 0]
+                    }}
+                    transition={{
+                        duration: 5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 2
+                    }}
+                >
+                    <div className="relative w-full h-full">
+                        {/* Left wing */}
+                        <div className="absolute -left-2 -top-2 w-3.5 h-3.5 bg-gradient-to-br from-blue-300 to-indigo-400 rounded-full transform rotate-45"></div>
+                        <div className="absolute -left-1.5 -top-1.5 w-2 h-2 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full transform rotate-45"></div>
+                        
+                        {/* Right wing */}
+                        <div className="absolute -right-2 -top-2 w-3.5 h-3.5 bg-gradient-to-br from-blue-300 to-indigo-400 rounded-full transform -rotate-45"></div>
+                        <div className="absolute -right-1.5 -top-1.5 w-2 h-2 bg-gradient-to-br from-blue-200 to-indigo-300 rounded-full transform -rotate-45"></div>
+                        
+                        {/* Body */}
+                        <div className="absolute left-1/2 top-1/2 w-1 h-3.5 bg-gradient-to-b from-emerald-600 to-emerald-800 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                        
+                        {/* Antennae */}
+                        <div className="absolute left-1/2 top-0 w-0.5 h-1 bg-emerald-800 rounded-full transform -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-emerald-800 rounded-full transform -translate-x-1/2"></div>
+                    </div>
+                </motion.div>
+
+                {/* Butterfly 4 */}
+                <motion.div
+                    className="absolute top-60 left-1/3 w-5 h-5"
+                    animate={{
+                        y: [0, -18, 0],
+                        x: [0, -12, 0],
+                        rotate: [0, -6, 6, 0]
+                    }}
+                    transition={{
+                        duration: 4.5,
+                        repeat: Infinity,
+                        ease: "easeInOut",
+                        delay: 0.5
+                    }}
+                >
+                    <div className="relative w-full h-full">
+                        {/* Left wing */}
+                        <div className="absolute -left-1.5 -top-1.5 w-2.5 h-2.5 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full transform rotate-45"></div>
+                        <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-gradient-to-br from-yellow-200 to-orange-300 rounded-full transform rotate-45"></div>
+                        
+                        {/* Right wing */}
+                        <div className="absolute -right-1.5 -top-1.5 w-2.5 h-2.5 bg-gradient-to-br from-yellow-300 to-orange-400 rounded-full transform -rotate-45"></div>
+                        <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-gradient-to-br from-yellow-200 to-orange-300 rounded-full transform -rotate-45"></div>
+                        
+                        {/* Body */}
+                        <div className="absolute left-1/2 top-1/2 w-0.5 h-2.5 bg-gradient-to-b from-amber-600 to-amber-800 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                        
+                        {/* Antennae */}
+                        <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-amber-800 rounded-full transform -translate-x-1/2"></div>
+                        <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-amber-800 rounded-full transform -translate-x-1/2"></div>
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Subtle floral accents in the corners */}
+            <div className="absolute inset-0 pointer-events-none z-0">
+                <div className="absolute -bottom-6 -left-2 text-rose-300/50">
+                    <span className="text-5xl select-none">✿</span>
+                </div>
+                <div className="absolute top-8 -right-3 text-pink-300/50">
+                    <span className="text-4xl select-none">✿</span>
+                </div>
+                <div className="absolute bottom-24 right-10 text-rose-200/50">
+                    <span className="text-3xl select-none">✿</span>
+                </div>
+            </div>
+
             <div className="container mx-auto px-4 py-20 relative z-10">
                 {/* Section Header */}
                 <motion.div
@@ -107,14 +348,99 @@ export default function Wishes() {
                         Kirimkan Doa dan Harapan Terbaik Anda
                     </motion.span>
 
-                    <motion.h2
+                    <motion.button
+                                onClick={clearAllWishes}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative w-3 h-3 opacity-80 hover:opacity-100 transition-all duration-200"
+                                title="Hapus Semua Data"
+                            >
+                                <div className="absolute inset-0">
+                                    {/* Left wing */}
+                                    <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-orange-500 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -left-0.5 -top-0.5 w-1 h-1 bg-orange-300 rounded-full transform rotate-45"></div>
+                                    {/* Right wing */}
+                                    <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-orange-500 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute -right-0.5 -top-0.5 w-1 h-1 bg-orange-300 rounded-full transform -rotate-45"></div>
+                                    {/* Body */}
+                                    <div className="absolute left-1/2 top-1/2 w-0.5 h-2 bg-slate-900 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                    {/* Antennae */}
+                                    <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                    <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                </div>
+                            </motion.button>
+
+                    <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-4xl md:text-5xl font-serif text-gray-800"
+                        className="flex items-center justify-center gap-3"
                     >
-                        Pesan dan Doa
-                    </motion.h2>
+                        <h2 className="text-4xl md:text-5xl font-serif text-gray-800">Pesan dan Doa</h2>
+
+                        <div className="flex items-center gap-2">
+                            {/* Small Orange Butterfly Clear All Button */}
+                            {/* <motion.button
+                                onClick={clearAllWishes}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative w-3 h-3 opacity-80 hover:opacity-100 transition-all duration-200"
+                                title="Hapus Semua Data"
+                            > */}
+                                {/* <div className="absolute inset-0">
+                                    <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-orange-500 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -left-0.5 -top-0.5 w-1 h-1 bg-orange-300 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-orange-500 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute -right-0.5 -top-0.5 w-1 h-1 bg-orange-300 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute left-1/2 top-1/2 w-0.5 h-2 bg-slate-900 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                    <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                    <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                </div>
+                            </motion.button> */}
+
+                            {/* Small Red Butterfly Clear Button */}
+                            {/* <motion.button
+                                onClick={clearDummyData}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative w-3 h-3 opacity-80 hover:opacity-100 transition-all duration-200"
+                                title="Hapus Data Dummy"
+                            > */}
+                                {/* <div className="absolute inset-0">
+                                    <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-red-500 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -left-0.5 -top-0.5 w-1 h-1 bg-red-300 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-red-500 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute -right-0.5 -top-0.5 w-1 h-1 bg-red-300 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute left-1/2 top-1/2 w-0.5 h-2 bg-slate-900 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                    <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                    <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                </div> */}
+                            {/* </motion.button> */}
+
+                            {/* Small Blue Butterfly Export Button */}
+                            <motion.button
+                                onClick={exportToExcel}
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="relative w-3 h-3 opacity-80 hover:opacity-100 transition-all duration-200"
+                                title="Export Excel"
+                            >
+                                <div className="absolute inset-0">
+                                    {/* Left wing */}
+                                    <div className="absolute -left-1 -top-1 w-1.5 h-1.5 bg-blue-500 rounded-full transform rotate-45"></div>
+                                    <div className="absolute -left-0.5 -top-0.5 w-1 h-1 bg-blue-300 rounded-full transform rotate-45"></div>
+                                    {/* Right wing */}
+                                    <div className="absolute -right-1 -top-1 w-1.5 h-1.5 bg-blue-500 rounded-full transform -rotate-45"></div>
+                                    <div className="absolute -right-0.5 -top-0.5 w-1 h-1 bg-blue-300 rounded-full transform -rotate-45"></div>
+                                    {/* Body */}
+                                    <div className="absolute left-1/2 top-1/2 w-0.5 h-2 bg-slate-900 rounded-full transform -translate-x-1/2 -translate-y-1/2"></div>
+                                    {/* Antennae */}
+                                    <div className="absolute left-1/2 top-0 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                    <div className="absolute left-1/2 top-0.5 w-0.5 h-0.5 bg-slate-900 rounded-full transform -translate-x-1/2"></div>
+                                </div>
+                            </motion.button>
+                        </div>
+                    </motion.div>
 
                     {/* Decorative Divider */}
                     <motion.div
@@ -127,6 +453,8 @@ export default function Wishes() {
                         <MessageCircle className="w-5 h-5 text-rose-400" />
                         <div className="h-[1px] w-12 bg-rose-200" />
                     </motion.div>
+
+                    
                 </motion.div>
 
                 {/* Wishes List */}
@@ -212,6 +540,8 @@ export default function Wishes() {
                                     </div>
                                     <input
                                         type="text"
+                                        value={guestName}
+                                        onChange={(e) => setGuestName(e.target.value)}
                                         placeholder="Masukan nama kamu..."
                                         className="w-full px-4 py-2.5 rounded-xl bg-white/50 border border-rose-100 focus:border-rose-300 focus:ring focus:ring-rose-200 focus:ring-opacity-50 transition-all duration-200 text-gray-700 placeholder-gray-400"
                                         required
@@ -283,6 +613,8 @@ export default function Wishes() {
                                         <span>Harapan kamu</span>
                                     </div>
                                     <textarea
+                                        value={newWish}
+                                        onChange={(e) => setNewWish(e.target.value)}
                                         placeholder="Kirimkan harapan dan doa untuk kedua mempelai..."
                                         className="w-full h-32 p-4 rounded-xl bg-white/50 border border-rose-100 focus:border-rose-300 focus:ring focus:ring-rose-200 focus:ring-opacity-50 resize-none transition-all duration-200"
                                         required

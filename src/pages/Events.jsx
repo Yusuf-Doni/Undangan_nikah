@@ -2,12 +2,19 @@ import EventCards from '@/components/EventsCard'
 import config from '@/config/config'
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
+import Flower from '@/components/Flower'
 
 export default function Events() {
     return (
         <>
             {/* Event Section */}
             <section id="event" className="min-h-screen relative overflow-hidden">
+                {/* Soft gradient and blobs to enrich background */}
+                <div className="absolute inset-0 -z-10">
+                    <div className="absolute inset-0 bg-gradient-to-b from-rose-50/80 via-pink-50/40 to-rose-100/80" />
+                    <div className="absolute top-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-rose-200/25 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-72 h-72 md:w-96 md:h-96 bg-pink-200/25 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+                </div>
                 <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
@@ -68,6 +75,18 @@ export default function Events() {
                             <div className="h-[1px] w-12 bg-rose-200" />
                         </motion.div>
                     </motion.div>
+
+                    {/* Corner floral accents to complement butterflies */}
+                    <div className="absolute inset-0 pointer-events-none">
+                        <div className="absolute -top-2 right-3">
+                            <Flower size={26} x={0} y={0} type="cherry" color="pink" delay={0.4} />
+                            <Flower size={20} x={-8} y={10} type="lily" color="purple" delay={0.8} />
+                        </div>
+                        <div className="absolute bottom-6 -left-1">
+                            <Flower size={30} x={0} y={0} type="rose" color="rose" delay={0.2} />
+                            <Flower size={22} x={10} y={6} type="daisy" color="yellow" delay={1.0} />
+                        </div>
+                    </div>
 
                     {/* Events Grid */}
                     <motion.div
